@@ -25,7 +25,8 @@ Dashboard with data visualization
 RESTful API (bonus feature)
 
 # Project Links 
-Architecture Diagram: View System Architecture [System Architecture](docs/architecture.png)
+Architecture Diagram: View System Architecture 
+![System Architecture](docs/architecture.png)
 
 Scrum Board: View Project Progress
 
