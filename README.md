@@ -3,4 +3,4 @@
 
  ## System Architecture
  
-![System Architecture](docs/architecture.png)
+![System Architecture](Web/assets/architecture.png)
