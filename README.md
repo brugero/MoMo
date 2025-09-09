@@ -1,7 +1,11 @@
 # Project Description
-The MoMo Transaction Analyzer is an enterprise-level fullstack application designed to process Mobile Money (MoMo) SMS data in XML format. The system cleans and categorizes transaction data, stores it in a relational database, and provides a frontend interface for analysis and visualization.
+This project is a **MoMo SMS Data Analysis Tool** that processes MoMo SMS XML data through an ETL pipeline—parsing, cleaning, categorizing, and storing in a SQLite database—and provides a frontend dashboard for data visualization and analysis.
 
-# Team Members:
+
+# Team Information:
+Team Name: Data Raiders
+
+Team members:
 - Albert NIYONSENGA- Github Repository Master & Initial Scaffolder 
 
 - Sonia UMUBYEYI BAYINGANA - System Architect
@@ -29,6 +33,8 @@ Architecture Diagram: View System Architecture
 ![System Architecture](docs/architecture.png)
 
 Scrum Board: View Project Progress
+You can track our tasks here: [MoMo Scrum Board](https://github.com/users/brugero/projects/2/views/1)
+
 
 # Project Structure
 text
