@@ -79,13 +79,14 @@ You can track our tasks here: [MoMo Scrum Board](https://github.com/users/bruger
 ### Database Setup  
 1. Clone this repo  
 2. Navigate to `/database`  
-3. Run `database_setup.sql` in your MySQL instance  
+3. Run `database_setup.sql` in your MySQL instance
+  
    ```sh
    mysql -u <username> -p < database_setup.sql
 Confirm sample data has been inserted
 
 ## JSON Examples
-Refer to /examples/json_schemas.json for JSON schema definitions, examples, and a full transaction object showing nested user / category / log info.
+Refer to `/examples/json_schemas.json` for JSON schema definitions, examples, and a full transaction object showing nested user / category / log info.
 
 ## AI Usage Policy
 ✅ Permitted: grammar, syntax checking; SQL best-practice research
@@ -101,5 +102,5 @@ Week 2 tasks include: ERD finalization, SQL schema implementation, JSON modeling
 
 Contributions are visible via GitHub commits per member
 
-License
-This project is under the MIT License — see the LICENSE file for details.
+## License
+This project is under the MIT License — see the [LICENSE](./LICENSE) file for details.
