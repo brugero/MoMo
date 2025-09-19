@@ -1,7 +1,7 @@
 -- database/database_setup.sql
 -- MoMo Transaction Analyzer Database Schema - Users & Transactions Module
--- Team: Data Pioneers
--- Implemented by: Selena ISIMBI
+-- Team: Data Raiders
+-- Implemented by: Selena ISIMBI & Albert Niyonsenga
 
 SET foreign_key_checks = 1;
 SET sql_mode = 'STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION';
@@ -9,13 +9,16 @@ SET sql_mode = 'STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_US
 -- Drop tables if they exist for clean setup
 DROP TABLE IF EXISTS transactions;
 DROP TABLE IF EXISTS user;
+DROP TABLE IF EXISTS transaction_categories;
+DROP TABLE IF EXISTS SMS;
+DROP TABLE IF EXISTS Systemlogs;
 
--- Temporary table for categories - will be replaced by Beulla's implementation
+-- table for categories
 CREATE TABLE IF NOT EXISTS transaction_categories (
     categoryId INT AUTO_INCREMENT PRIMARY KEY,
     TransactionType VARCHAR(50) NOT NULL,
     paymentType VARCHAR(50) NOT NULL
-) ENGINE=InnoDB;
+);
 
 -- Users table implementation by Selena ISIMBI
 CREATE TABLE IF NOT EXISTS user (
@@ -26,7 +29,27 @@ CREATE TABLE IF NOT EXISTS user (
     UNIQUE KEY uk_user_phone (PhoneNumber),
     CONSTRAINT chk_phone_not_empty CHECK (PhoneNumber != ''),
     CONSTRAINT chk_names_not_empty CHECK (FullNames != '')
-) ENGINE=InnoDB;
+);
+
+-- table for SMS
+CREATE TABLE IF NOT EXISTS SMS (
+    SMSId INTEGER,
+    TransactionId INTEGER,
+    Message VARCHAR(500),
+    UserId INTEGER,
+    PRIMARY KEY (SMSId, TransactionId),
+    FOREIGN KEY (TransactionId) REFERENCES transactions(TransactionId),
+    FOREIGN KEY (UserId) REFERENCES user(UserId)
+);
+
+-- table for System logs
+CREATE TABLE IF NOT EXISTS SystemLogs (
+    logId VARCHAR(20) PRIMARY KEY, -- COMMENT: 'Typically an INTEGER AUTO_INCREMENT for logs'
+    status VARCHAR(40),
+    transactionId INTEGER,
+    timestamp DATETIME, -- Assuming this is the column for the log time
+    FOREIGN KEY (transactionId) REFERENCES transactions(TransactionId)
+);
 
 -- Transactions table implementation by Selena ISIMBI
 CREATE TABLE IF NOT EXISTS transactions (
@@ -49,7 +72,8 @@ CREATE TABLE IF NOT EXISTS transactions (
     CONSTRAINT chk_balance_non_negative CHECK (balance >= 0),
     CONSTRAINT chk_initial_balance_non_negative CHECK (initialBalance >= 0),
     UNIQUE KEY uk_transaction_ref (TransactionReference)
-) ENGINE=InnoDB;
+);
+
 
 -- Performance indexes created by Selena ISIMBI
 CREATE INDEX idx_transactions_sender ON transactions (senderUserId);
@@ -61,6 +85,12 @@ CREATE INDEX idx_transactions_receiver_date ON transactions (receiverUserId, tra
 CREATE INDEX idx_transactions_amount_date ON transactions (Amount, transactionDate);
 CREATE INDEX idx_user_phone ON user (PhoneNumber);
 CREATE INDEX idx_user_names ON user (FullNames);
+CREATE INDEX idx_sms_transaction ON SMS (TransactionId);
+CREATE INDEX idx_sms_user ON SMS (UserId);
+CREATE INDEX idx_logs_transaction ON SystemLogs (transactionId);
+CREATE INDEX idx_logs_timestamp ON SystemLogs (timestamp);
+CREATE INDEX idx_user_phone ON user (PhoneNumber);
+
 
 -- Sample categories data - temporary implementation
 INSERT INTO transaction_categories (TransactionType, paymentType) VALUES
@@ -89,6 +119,24 @@ INSERT INTO transactions (Fee, Amount, balance, initialBalance, senderUserId, re
 (500.00, 75000.00, 298000.00, 373500.00, 1, 3, '2023-10-26 12:30:00', 6, 'REF004'),
 (0.00, 50000.00, 348000.00, 298000.00, 5, 1, '2023-10-27 11:20:00', 1, 'REF005'),
 (300.00, 50000.00, 149700.00, 200000.00, 2, 6, '2023-10-27 14:15:00', 1, 'REF006');
+
+INSERT INTO SMS (SMSId, TransactionId, Message, UserId)
+VALUES
+    (501, 1001, 'You have sent 50,000 FRW to Bob Ssebatta. Fee 500 FRW. New balance: 450,000 FRW. Ref: ABC123.', 1),
+    (502, 1002, 'You have received 25,000 FRW from SuperMart Ltd. New balance: 475,000 FRW. Ref: DEF456.', 1),
+    (503, 1003, 'You bought 100,000 FRW airtime. Fee 1000 FRW. New balance: 374,000 FRW. Ref: GHI789.', 1),
+    (504, 1004, 'You paid 75,000 FRW to SuperMart Ltd. Fee 500 FRW. New balance: 299,500 FRW. Ref: JKL012.', 1),
+    (505, 1005, 'You have received 50,000 FRW from David Okello. New balance: 349,500 FRW. Ref: MNO345.', 1);
+
+
+INSERT INTO SystemLogs (logId, status, transactionId, timestamp)
+VALUES
+    ('LOG-001', 'PROCESSED', 1001, '2023-10-25 14:31:05'),
+    ('LOG-002', 'PROCESSED', 1002, '2023-10-25 16:46:12'),
+    ('LOG-003', 'PROCESSED', 1003, '2023-10-26 09:16:33'),
+    ('LOG-004', 'FAILED', NULL, '2023-10-26 10:17:54'),
+    ('LOG-005', 'PROCESSED', 1004, '2023-10-26 12:31:45'),
+    ('LOG-006', 'PROCESSED', 1005, '2023-10-27 11:21:01');
 
 -- Testing queries to verify implementation works correctly
 SELECT 'Users and Transactions tables created successfully' as Status;
