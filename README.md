@@ -44,6 +44,8 @@ You can track our tasks here: [MoMo Scrum Board](https://github.com/users/bruger
 
 
 # Project Structure
+
+```
 ├── README.md # Project overview and setup instructions
 ├── .env.example # Environment variables template
 ├── requirements.txt # Python dependencies
@@ -55,7 +57,7 @@ You can track our tasks here: [MoMo Scrum Board](https://github.com/users/bruger
 ├── api/ # API layer & schema definitions
 ├── tests/ # Unit tests for parsing, cleaning, categorization
 └── docs/ # Documentation (ERD, design docs, etc.)
-
+```
 ## 🛠 Week 2 Deliverables: Database & JSON Foundation  
 
 ### Database Design  
