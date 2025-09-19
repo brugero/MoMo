@@ -1,0 +1,96 @@
+{
+  "schemas": {
+    "User": {
+      "user_id": "INT - primary key",
+      "name": "VARCHAR",
+      "phone_number": "VARCHAR",
+      "email": "VARCHAR",
+      "created_at": "DATE"
+    },
+    "Transaction_Category": {
+      "category_id": "INT - primary key",
+      "category_name": "VARCHAR",
+      "description": "VARCHAR"
+    },
+    "Transaction": {
+      "transaction_id": "INT - primary key",
+      "amount": "INT",
+      "currency": "VARCHAR",
+      "transaction_date": "DATE",
+      "sender_id": "FK to User",
+      "receiver_id": "FK to User",
+      "category_id": "FK to Transaction_Category"
+    },
+    "System_Log": {
+      "log_id": "INT - primary key",
+      "transaction_id": "FK to Transaction",
+      "status": "VARCHAR",
+      "message": "VARCHAR",
+      "logged_at": "DATE"
+    }
+  },
+
+  "examples": {
+    "nested_transaction": {
+      "transaction_id": 101,
+      "amount": 25000,
+      "currency": "RWF",
+      "transaction_date": "2025-09-11",
+      "sender": {
+        "user_id": 1,
+        "name": "Alice Mukamana",
+        "phone_number": "0788123456",
+        "email": "alice@gmail.com"
+      },
+      "receiver": {
+        "user_id": 2,
+        "name": "Jean Uwimana",
+        "phone_number": "0788987654",
+        "email": "jean@gmail.com"
+      },
+      "category": {
+        "category_id": 3,
+        "category_name": "Bill Payment",
+        "description": "Utility bill settlement"
+      }
+    },
+
+    "full_transaction": {
+      "transaction_id": 102,
+      "amount": 7500,
+      "currency": "RWF",
+      "transaction_date": "2025-09-11",
+      "sender": {
+        "user_id": 3,
+        "name": "Eric Niyonsenga",
+        "phone_number": "0788555666",
+        "email": "eric@gmail.com"
+      },
+      "receiver": {
+        "user_id": 4,
+        "name": "Claudine Uwase",
+        "phone_number": "0788444777",
+        "email": "claudine@gmail.com"
+      },
+      "category": {
+        "category_id": 1,
+        "category_name": "Airtime Purchase",
+        "description": "Buying prepaid airtime"
+      },
+      "system_logs": [
+        {
+          "log_id": 201,
+          "status": "Processed",
+          "message": "Transaction validated and completed",
+          "logged_at": "2025-09-11"
+        },
+        {
+          "log_id": 202,
+          "status": "Notification Sent",
+          "message": "SMS sent to sender and receiver",
+          "logged_at": "2025-09-11"
+        }
+      ]
+    }
+  }
+}
