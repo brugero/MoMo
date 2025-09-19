@@ -15,11 +15,11 @@ Team members:
 - Ulrich RUKAZAMBUGA - Documentation
 
   ## Week 2 Roles
-- Beulla RUGERO** – ERD Design & Documentation  
-- Albert NIYONSENGA** – SQL Schema Design & Testing  
-- Selena ISIMBI** – SQL Schema Design & Testing  
-- Sonia UMUBYEYI BAYINGANA** – JSON & Data Modeling  
-- Ulrich RUKAZAMBUGA** – JSON & Data Modeling 
+- Beulla RUGERO – ERD Design & Documentation  
+- Albert NIYONSENGA – SQL Schema Design & Testing  
+- Selena ISIMBI – SQL Schema Design & Testing  
+- Sonia UMUBYEYI BAYINGANA – JSON & Data Modeling  
+- Ulrich RUKAZAMBUGA – JSON & Data Modeling 
 
 # Key features:
 
