@@ -85,6 +85,9 @@ You can track our tasks here: [MoMo Scrum Board](https://github.com/users/bruger
    mysql -u <username> -p < database_setup.sql
 Confirm sample data has been inserted
 
+### Running the server 
+1. Run `uvicorn app:app --reload` to expose the endpoints
+NB: Make sure all dependencies are installed. Run `pip install fastapi uvicorn pymysql` to install them   
 ## JSON Examples
 Refer to `/examples/json_schemas.json` for JSON schema definitions, examples, and a full transaction object showing nested user / category / log info.
 
