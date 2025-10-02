@@ -1,12 +1,20 @@
 import json
 import http.server
 import socketserver
+import base64
+import getpass
 from urllib.parse import urlparse, parse_qs
 from datetime import datetime
 
 # JSON file storage
 TRANSACTIONS_FILE = "transactions.json"
 LOGS_FILE = "logs.json"
+API_KEY_FILE = ".api_key"
+RATE_LIMIT = 1000  # requests per minute (By defaults to 1000 requests/minute)
+
+# Global variables
+stored_api_key = None  # Store the Base64 encoded version
+request_counts = {}
 
 # Initialize JSON files if they don't exist
 def init_json_files():
@@ -19,6 +27,65 @@ def init_json_files():
                 json.dump([], f)
 
 init_json_files()
+
+def setup_api_key():
+    """Get plain API key from user, encode it, and store the encoded version"""
+    global stored_api_key
+    
+    try:
+        # Try to load existing API key (Base64 encoded)
+        with open(API_KEY_FILE, 'r') as f:
+            stored_api_key = f.read().strip()
+        print("Loaded existing API key")
+        return
+    except FileNotFoundError:
+        pass
+    
+    # Get new API key from user
+    print("\nAPI Security Setup")
+    print("Enter your secret API key (remember this!)\n")
+    
+    while True:
+        user_key = getpass.getpass("Your API key: ").strip()
+        if user_key:
+            # Encode to Base64 and store the encoded version
+            stored_api_key = base64.b64encode(user_key.encode()).decode()
+            
+            # Save the Base64 encoded version for future runs
+            with open(API_KEY_FILE, 'w') as f:
+                f.write(stored_api_key)
+            
+            print("API key saved successfully!")
+            break
+        else:
+            print("API key cannot be empty. Try again.")
+
+class Security:
+    @staticmethod
+    def authenticate(incoming_key_b64):
+        """Compare the Base64 key from client with our stored Base64 key"""
+        global stored_api_key
+        try:
+            # Direct comparison of Base64 strings
+            return incoming_key_b64 == stored_api_key
+        except:
+            return False
+    
+    @staticmethod
+    def rate_limit(client_ip):
+        """Simple IP-based rate limiting"""
+        current_minute = datetime.now().minute
+        
+        if client_ip not in request_counts:
+            request_counts[client_ip] = {"minute": current_minute, "count": 1}
+            return True
+        
+        if request_counts[client_ip]["minute"] != current_minute:
+            request_counts[client_ip] = {"minute": current_minute, "count": 1}
+            return True
+        
+        request_counts[client_ip]["count"] += 1
+        return request_counts[client_ip]["count"] <= RATE_LIMIT
 
 class JSONHandler:
     @staticmethod
@@ -43,12 +110,29 @@ class JSONHandler:
 
 class APIHandler(http.server.BaseHTTPRequestHandler):
     
+    def _security_check(self):
+        """Security gateway for all requests"""
+        api_key_b64 = self.headers.get('X-API-Key')
+        client_ip = self.client_address[0]
+        
+        # Authentication - now comparing Base64 strings directly
+        if not api_key_b64 or not Security.authenticate(api_key_b64):
+            self._send_error(401, "Invalid API key")
+            return False
+        
+        # Rate limiting
+        if not Security.rate_limit(client_ip):
+            self._send_error(429, "Rate limit exceeded")
+            return False
+        
+        return True
+    
     def _set_headers(self, status_code=200):
         self.send_response(status_code)
         self.send_header('Content-type', 'application/json')
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type, X-API-Key')
         self.end_headers()
     
     def do_OPTIONS(self):
@@ -73,7 +157,7 @@ class APIHandler(http.server.BaseHTTPRequestHandler):
         self._set_headers(status_code)
         self.wfile.write(json.dumps(data).encode('utf-8'))
     
-    # Transactions endpoints
+    # Transactions endpoints - ORIGINAL LOGIC PRESERVED
     def handle_transactions(self, path_parts, method):
         if method == 'GET':
             if len(path_parts) > 1:
@@ -205,6 +289,10 @@ class APIHandler(http.server.BaseHTTPRequestHandler):
                 self._send_error(404, "Endpoint not found")
                 return
             
+            # Security check for all requests
+            if not self._security_check():
+                return
+            
             endpoint = path_parts[0]
             
             if endpoint == 'transactions':
@@ -215,14 +303,21 @@ class APIHandler(http.server.BaseHTTPRequestHandler):
             self._send_error(500, f"Internal server error: {str(e)}")
 
 def run_server(port=8000):
+    # Setup API key first
+    setup_api_key()
+    
     with socketserver.TCPServer(("", port), APIHandler) as httpd:
-        print(f"Server running on port {port}")
+        print(f"\nServer running on port {port}")
+        print(f"Rate limit: {RATE_LIMIT} requests/minute per IP")
+        print(f"Security: API Key authentication enabled")
         print(f"Available endpoints:")
         print(f"  GET    /transactions")
         print(f"  GET    /transactions/{{id}}")
         print(f"  POST   /transactions")
         print(f"  PUT    /transactions/{{id}}")
         print(f"  DELETE /transactions/{{id}}")
+        print(f"\nRequired header for all requests:")
+        print(f'curl -H "X-API-Key: {stored_api_key}" http://localhost:{port}/transactions')
         httpd.serve_forever()
 
 if __name__ == "__main__":
