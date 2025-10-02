@@ -68,7 +68,11 @@ You can track our tasks here: [MoMo Scrum Board](https://github.com/users/bruger
 ### JSON & Data Modeling  
 - Schemas defined for main entities: `User`, `Transaction_Category`, `Transaction`, `System_Log`.  
 - Nested structures to represent relationships: transactions include sender & receiver info; categories map via junction table; logs associated per transaction.  
-- Example objects created including a full complex transaction with system logs (saved in `/examples/json_schemas.json`).  
+- Example objects created including a full complex transaction with system logs (saved in `/examples/json_schemas.json`).
+
+## API Documentation
+
+See the full API reference here: [docs/api_docs.md](./docs/api_docs.md)
 
 
 ## Getting Started

@@ -27,7 +27,7 @@ If credentials are invalid or missing, the server responds:
 
 ## Endpoints
 
-# GET /transactions
+### GET /transactions
 
 Description: Retrieve a list of all transaction records.
 
@@ -66,7 +66,7 @@ Error responses:
 
 500 Internal Server Error — unexpected error
 
-# GET /transactions/{id}
+### GET /transactions/{id}
 
 Description: Retrieve a single transaction record by its id.
 
@@ -96,7 +96,7 @@ Error responses:
 
 500 Internal Server Error
 
-# POST /transactions
+### POST /transactions
 
 Description: Create a new transaction record.
 
@@ -138,7 +138,7 @@ Error responses:
 
 500 Internal Server Error
 
-# PUT /transactions/{id}
+### PUT /transactions/{id}
 
 Description: Update an existing transaction record.
 
@@ -185,7 +185,7 @@ Error responses:
 
 500 Internal Server Error
 
-# DELETE /transactions/{id}
+### DELETE /transactions/{id}
 
 Description: Delete a transaction record.
 
