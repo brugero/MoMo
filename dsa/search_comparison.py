@@ -222,52 +222,6 @@ def run_comprehensive_test(transactions: List[Dict[str, Any]]):
     print(f"Memory Overhead: {dict_size - list_size} bytes ({((dict_size - list_size) / list_size * 100):.1f}%)")
 
 
-def generate_analysis_report():
-    """
-    Generate detailed analysis report for our assignment submission
-    """
-    report = """
-================================================================================
-ANALYSIS REPORT: LINEAR SEARCH VS DICTIONARY LOOKUP
-================================================================================
-
-1. PERFORMANCE COMPARISON:
-
-Linear Search:
-- Time Complexity: O(n) - scales linearly with dataset size
-- Best Case: Find item first (O(1))
-- Worst Case: Find item last or not found (O(n))
-- Average Case: O(n/2) ≈ O(n)
-
-Dictionary Lookup:
-- Time Complexity: O(1) average case - constant time
-- Uses hash table for direct access
-- Performance consistent regardless of dataset size
-
-2. PRACTICAL IMPLICATIONS FOR OUR MOMO API:
-
-For GET /transactions/{id} endpoints:
-- Dictionary lookup provides instant response times
-- Linear search becomes unacceptable with growing transaction history
-- The performance difference justifies the memory overhead
-
-3. RECOMMENDATION:
-
-Use dictionary-based lookups for:
-- All transaction ID searches in API endpoints
-- User authentication and profile lookups
-- Any frequently accessed data
-
-Use linear search only for:
-- Very small datasets (< 10 items)
-- One-time operations on unsorted data
-- Simple prototyping and debugging
-
-================================================================================
-"""
-    return report
-
-
 def main():
     """
     Main function for our DSA assignment - testing search algorithms
@@ -297,10 +251,6 @@ def main():
     
     # Run our comparison tests
     run_comprehensive_test(transactions)
-    
-    # Generate and print analysis report
-    print("\n")
-    print(generate_analysis_report())
     
     # Save sample data for API testing
     with open('sample_transactions.json', 'w', encoding='utf-8') as f:
