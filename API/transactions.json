@@ -1,14 +1,18 @@
 [
   {
-    "TransactionId": 1,
-    "Fee": 10.0,
-    "Amount": 100.0,
-    "balance": 90.0,
-    "initialBalance": 100.0,
-    "senderUserId": 1,
-    "receiverUserId": 2,
-    "transactionDate": "2023-10-01T12:00:00",
-    "categoryId": 1,
-    "TransactionReference": "REF123"
+    "id": 1,
+    "type": "payment",
+    "amount": 5000,
+    "sender": "36521838",
+    "receiver": "Internet Provider",
+    "timestamp": "2024-06-28T14:30:00"
+  },
+  {
+    "id": 1,
+    "type": "payment",
+    "amount": 5000,
+    "sender": "36521838",
+    "receiver": "Internet Provider",
+    "timestamp": "2024-06-28T14:30:00"
   }
 ]

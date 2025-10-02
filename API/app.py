@@ -100,8 +100,7 @@ class APIHandler(http.server.BaseHTTPRequestHandler):
                 transaction_data = json.loads(body)
                 
                 # Validate required fields
-                required_fields = ['Fee', 'Amount', 'balance', 'initialBalance', 'senderUserId', 
-                                 'receiverUserId', 'transactionDate', 'categoryId', 'TransactionReference']
+                required_fields = ['type', 'amount', 'sender', 'receiver', 'timestamp']
                 for field in required_fields:
                     if field not in transaction_data:
                         self._send_error(400, f"Missing required field: {field}")
@@ -109,17 +108,13 @@ class APIHandler(http.server.BaseHTTPRequestHandler):
                 
                 transactions = JSONHandler.read_json(TRANSACTIONS_FILE)
                 new_transaction = {
-                    'TransactionId': JSONHandler.get_next_id(transactions),
-                    'Fee': transaction_data['Fee'],
-                    'Amount': transaction_data['Amount'],
-                    'balance': transaction_data['balance'],
-                    'initialBalance': transaction_data['initialBalance'],
-                    'senderUserId': transaction_data['senderUserId'],
-                    'receiverUserId': transaction_data['receiverUserId'],
-                    'transactionDate': transaction_data['transactionDate'],
-                    'categoryId': transaction_data['categoryId'],
-                    'TransactionReference': transaction_data['TransactionReference']
-                }
+                        'id': JSONHandler.get_next_id(transactions),
+                        'type': transaction_data['type'],
+                        'amount': transaction_data['amount'],
+                        'sender': transaction_data['sender'],
+                        'receiver': transaction_data['receiver'],
+                        'timestamp': transaction_data['timestamp']
+                    }
                 
                 transactions.append(new_transaction)
                 JSONHandler.write_json(TRANSACTIONS_FILE, transactions)
@@ -156,16 +151,12 @@ class APIHandler(http.server.BaseHTTPRequestHandler):
                     
                     # Update transaction
                     updated_transaction = {
-                        'TransactionId': transaction_id,
-                        'Fee': transaction_data['Fee'],
-                        'Amount': transaction_data['Amount'],
-                        'balance': transaction_data['balance'],
-                        'initialBalance': transaction_data['initialBalance'],
-                        'senderUserId': transaction_data['senderUserId'],
-                        'receiverUserId': transaction_data['receiverUserId'],
-                        'transactionDate': transaction_data['transactionDate'],
-                        'categoryId': transaction_data['categoryId'],
-                        'TransactionReference': transaction_data['TransactionReference']
+                        'id': transaction_id,
+                        'type': transaction_data['type'],
+                        'amount': transaction_data['amount'],
+                        'sender': transaction_data['sender'],
+                        'receiver': transaction_data['receiver'],
+                        'timestamp': transaction_data['timestamp']
                     }
                     
                     transactions[transaction_index] = updated_transaction
