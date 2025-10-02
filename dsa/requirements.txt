@@ -1,1 +1,15 @@
 
+# DSA Module Requirements
+# No external dependencies required
+# Uses Python standard library only:
+# - json
+# - time
+# - typing
+# - unittest
+# - sys
+# - os
+
+# Optional: For development
+# pytest==7.4.0  # Alternative test runner
+# black==23.3.0  # Code formatter
+# mypy==1.3.0    # Type checker
