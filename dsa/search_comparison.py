@@ -12,53 +12,55 @@ class TransactionSearcher:
     
     def __init__(self, transactions: List[Dict[str, Any]]):
         """
-        Initialize with MoMo transaction data from our XML parsing
-        Using the actual transaction structure Ulrich parsed from modified_sms_v2.xml
+        Initialize with MoMo transaction data
         """
         self.transactions = transactions
         self.transaction_dict = self._build_dictionary()
         print(f"Loaded {len(transactions)} MoMo transactions for search testing")
         
-    def _build_dictionary(self) -> Dict[str, Dict[str, Any]]:
+    def _build_dictionary(self) -> Dict[str, List[Dict[str, Any]]]:
         """
-        Build a dictionary for O(1) lookup - this is our performance optimization
+        Build a dictionary that handles duplicate IDs by storing lists of transactions
         """
         transaction_dict = {}
         for transaction in self.transactions:
-            # Handle both string and integer IDs from the dataset
-            transaction_dict[str(transaction.get('id', ''))] = transaction
+            transaction_id = str(transaction.get('id', ''))
+            if transaction_id not in transaction_dict:
+                transaction_dict[transaction_id] = []
+            transaction_dict[transaction_id].append(transaction)
         return transaction_dict
     
-    def linear_search(self, transaction_id: str, verbose: bool = False) -> Optional[Dict[str, Any]]:
+    def linear_search(self, transaction_id: str, verbose: bool = False) -> List[Dict[str, Any]]:
         """
-        Perform linear search to find transaction by ID
-        Time Complexity: O(n) - worst case scans entire list
+        Perform linear search to find all transactions with given ID
+        Returns list of matching transactions since IDs can be duplicated
         """
         if verbose:
             print(f"Linear search for ID: {transaction_id}")
         
+        matches = []
         search_count = 0
         for transaction in self.transactions:
             search_count += 1
-            # Compare string representations to handle different ID formats
             if str(transaction.get('id', '')) == str(transaction_id):
-                if verbose:
-                    print(f"Found after {search_count} checks")
-                return transaction
+                matches.append(transaction)
         
         if verbose:
-            print(f"Not found after {search_count} checks")
-        return None
+            if matches:
+                print(f"Found {len(matches)} transactions after {search_count} checks")
+            else:
+                print(f"Not found after {search_count} checks")
+        return matches
     
-    def dictionary_lookup(self, transaction_id: str, verbose: bool = False) -> Optional[Dict[str, Any]]:
+    def dictionary_lookup(self, transaction_id: str, verbose: bool = False) -> Optional[List[Dict[str, Any]]]:
         """
-        Perform dictionary lookup to find transaction by ID
-        Time Complexity: O(1) - direct hash table access
+        Perform dictionary lookup to find transactions by ID
+        Returns list of transactions since IDs can be duplicated
         """
         result = self.transaction_dict.get(str(transaction_id))
         if verbose:
             if result:
-                print(f"Dictionary lookup found ID: {transaction_id}")
+                print(f"Dictionary lookup found {len(result)} transactions for ID: {transaction_id}")
             else:
                 print(f"Dictionary lookup - ID not found: {transaction_id}")
         return result
@@ -98,7 +100,7 @@ class TransactionSearcher:
 
 def load_transactions_from_json(filepath: str) -> List[Dict[str, Any]]:
     """
-    Load transactions from JSON file - this should match Ulrich's parsed data
+    Load transactions from JSON file
     """
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
@@ -123,25 +125,22 @@ def load_transactions_from_json(filepath: str) -> List[Dict[str, Any]]:
 
 def create_sample_transactions(count: int = 25) -> List[Dict[str, Any]]:
     """
-    Create sample data that matches our actual MoMo transaction structure
-    Based on the typical SMS transaction format
+    Create sample data that matches the actual MoMo transaction structure
     """
     print(f"Creating {count} sample MoMo transactions for testing...")
     transactions = []
     
     # Using realistic MoMo transaction types
-    transaction_types = ['received', 'sent', 'withdrawal', 'deposit', 'payment']
+    transaction_types = ['payment', 'transfer', 'withdrawal', 'deposit', 'received']
     
     for i in range(1, count + 1):
         transaction = {
-            'id': i,  # Using integer IDs which are common in datasets
-            'transaction_type': transaction_types[i % len(transaction_types)],
-            'amount': f"{1500 + (i * 237)}",
-            'sender': f"25078{100000 + i:06d}",  # Rwandan phone number format
+            'id': i,
+            'type': transaction_types[i % len(transaction_types)],
+            'amount': 1000 + (i * 500),
+            'sender': f"25078{100000 + i:06d}",
             'receiver': f"25072{200000 + i:06d}",
-            'timestamp': f"2024-01-{(i % 28) + 1:02d}T08:{30 + i % 30:02d}:00Z",
-            'message': f"Payment for goods #{i}",
-            'status': 'completed'
+            'timestamp': f"2024-01-{(i % 28) + 1:02d}T08:{30 + i % 30:02d}:00Z"
         }
         transactions.append(transaction)
     
@@ -177,17 +176,18 @@ def run_comprehensive_test(transactions: List[Dict[str, Any]]):
         # Test searches with verbose output
         print("Linear search:", end=" ")
         start = time.perf_counter()
-        result_linear = searcher.linear_search(test_id, verbose=True)
+        results_linear = searcher.linear_search(test_id, verbose=True)
         time_linear = time.perf_counter() - start
         
         print("Dictionary lookup:", end=" ")
         start = time.perf_counter()
-        result_dict = searcher.dictionary_lookup(test_id, verbose=True)
+        results_dict = searcher.dictionary_lookup(test_id, verbose=True)
         time_dict = time.perf_counter() - start
         
-        print(f"  Linear Search: {time_linear * 1000000:.2f} µs")
-        print(f"  Dict Lookup:   {time_dict * 1000000:.2f} µs")
-        print(f"  Speedup:       {time_linear / time_dict:.2f}x faster")
+        print(f"  Linear Search: {time_linear * 1000000:.2f} µs | Found: {len(results_linear)} transactions")
+        print(f"  Dict Lookup:   {time_dict * 1000000:.2f} µs | Found: {len(results_dict) if results_dict else 0} transactions")
+        if results_linear and results_dict:
+            print(f"  Speedup:       {time_linear / time_dict:.2f}x faster")
     
     # Comprehensive benchmark (without verbose output)
     print("\n" + "=" * 80)
@@ -235,7 +235,8 @@ def main():
     possible_paths = [
         '../api/transactions.json',
         './transactions.json',
-        '../transactions.json'
+        '../transactions.json',
+        'sample_transactions.json'
     ]
     
     transactions = []
@@ -255,7 +256,7 @@ def main():
     # Save sample data for API testing
     with open('sample_transactions.json', 'w', encoding='utf-8') as f:
         json.dump(transactions, f, indent=2)
-    print(f"Sample data saved to 'sample_transactions.json'")
+    print(f"\nSample data saved to 'sample_transactions.json'")
     
     print("\nKey Insight: Dictionary lookup is essential for fast API responses!")
     print("Ready for integration with Beulla's API endpoints!")
