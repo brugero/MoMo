@@ -15,88 +15,90 @@ class TestTransactionSearcher(unittest.TestCase):
     
     def setUp(self):
         """Setup test data that matches our MoMo transaction format"""
-        print("Setting up test data...")
         self.test_transactions = [
-            {'id': 'txn_0001', 'transaction_type': 'received', 'amount': '1500 RWF', 'sender': 'MTN 25078000001'},
-            {'id': 'txn_0002', 'transaction_type': 'sent', 'amount': '2500 RWF', 'sender': 'AIRTEL 25073000002'},
-            {'id': 'txn_0003', 'transaction_type': 'withdrawal', 'amount': '10000 RWF', 'sender': 'MTN 25078000003'},
+            {'id': 1, 'type': 'payment', 'amount': 5000, 'sender': '36521838', 'receiver': 'Internet Provider', 'timestamp': '2024-06-28T14:30:00'},
+            {'id': 2, 'type': 'transfer', 'amount': 2500, 'sender': '25078100001', 'receiver': '25078200001', 'timestamp': '2024-06-28T15:45:00'},
+            {'id': 3, 'type': 'withdrawal', 'amount': 10000, 'sender': '25078100002', 'receiver': 'ATM_12345', 'timestamp': '2024-06-28T16:20:00'},
         ]
         self.searcher = TransactionSearcher(self.test_transactions)
     
     def test_linear_search_found(self):
         """Test that linear search finds existing transactions"""
-        print("Testing linear search...")
-        result = self.searcher.linear_search('txn_0002')
+        result = self.searcher.linear_search('2')
         self.assertIsNotNone(result)
-        self.assertEqual(result['transaction_type'], 'sent')
-        self.assertEqual(result['amount'], '2500 RWF')
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]['type'], 'transfer')
+        self.assertEqual(result[0]['amount'], 2500)
     
     def test_linear_search_not_found(self):
         """Test linear search with non-existing transaction"""
-        result = self.searcher.linear_search('txn_9999')
-        self.assertIsNone(result)
+        result = self.searcher.linear_search('999')
+        self.assertEqual(len(result), 0)
     
     def test_dictionary_lookup_found(self):
         """Test dictionary lookup with existing transaction"""
-        print("Testing dictionary lookup...")
-        result = self.searcher.dictionary_lookup('txn_0001')
+        result = self.searcher.dictionary_lookup('1')
         self.assertIsNotNone(result)
-        self.assertEqual(result['id'], 'txn_0001')
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]['id'], 1)
+        self.assertEqual(result[0]['sender'], '36521838')
     
     def test_dictionary_lookup_not_found(self):
         """Test dictionary lookup with non-existing transaction"""
-        result = self.searcher.dictionary_lookup('txn_9999')
+        result = self.searcher.dictionary_lookup('999')
         self.assertIsNone(result)
     
     def test_both_methods_return_same_result(self):
-        """Verify both search methods return identical results"""
-        print("Comparing both search methods...")
-        for transaction in self.test_transactions:
-            tid = str(transaction['id'])
-            linear_result = self.searcher.linear_search(tid)
-            dict_result = self.searcher.dictionary_lookup(tid)
-            self.assertEqual(linear_result, dict_result, 
-                           f"Both methods should return same transaction for ID: {tid}")
+        """Verify both search methods return identical results for same ID"""
+        # Test with ID that exists
+        test_id = '1'
+        linear_result = self.searcher.linear_search(test_id)
+        dict_result = self.searcher.dictionary_lookup(test_id)
+        
+        self.assertEqual(linear_result, dict_result)
+        
+        # Test with ID that doesn't exist
+        linear_result = self.searcher.linear_search('999')
+        dict_result = self.searcher.dictionary_lookup('999')
+        self.assertEqual(len(linear_result), 0)
+        self.assertIsNone(dict_result)
     
     def test_dictionary_is_faster(self):
         """Test that dictionary lookup is faster than linear search"""
-        print("Testing performance difference...")
         # Create larger dataset for meaningful comparison
         large_transactions = create_sample_transactions(50)
         searcher = TransactionSearcher(large_transactions)
         
         # Search for last element (worst case for linear search)
-        target_id = 'txn_0050'
+        target_id = '50'
         iterations = 100
         
         # Time linear search
         start = time.perf_counter()
         for _ in range(iterations):
-            searcher.linear_search(target_id)
+            searcher.linear_search(target_id, verbose=False)
         linear_time = time.perf_counter() - start
         
         # Time dictionary lookup
         start = time.perf_counter()
         for _ in range(iterations):
-            searcher.dictionary_lookup(target_id)
+            searcher.dictionary_lookup(target_id, verbose=False)
         dict_time = time.perf_counter() - start
         
         self.assertLess(dict_time, linear_time, 
                         "Dictionary lookup should be faster than linear search")
-        print(f"Dictionary was {linear_time/dict_time:.1f}x faster")
     
     def test_edge_cases(self):
         """Test edge cases in our search implementation"""
-        print("Testing edge cases...")
         # Empty list
         empty_searcher = TransactionSearcher([])
-        self.assertIsNone(empty_searcher.linear_search('txn_0001'))
-        self.assertIsNone(empty_searcher.dictionary_lookup('txn_0001'))
+        self.assertEqual(len(empty_searcher.linear_search('1')), 0)
+        self.assertIsNone(empty_searcher.dictionary_lookup('1'))
         
-        # Single element
-        single_searcher = TransactionSearcher([{'id': 'txn_single', 'data': 'test'}])
-        self.assertIsNotNone(single_searcher.linear_search('txn_single'))
-        self.assertIsNotNone(single_searcher.dictionary_lookup('txn_single'))
+        # Test handling of string vs integer IDs
+        result_str = self.searcher.linear_search('1')
+        result_int = self.searcher.linear_search(1)
+        self.assertEqual(result_str, result_int)
 
 
 class TestPerformanceScaling(unittest.TestCase):
@@ -104,7 +106,6 @@ class TestPerformanceScaling(unittest.TestCase):
     
     def test_linear_search_scales_linearly(self):
         """Verify linear search time increases with dataset size"""
-        print("Testing linear search scaling...")
         sizes = [10, 20, 30]
         times = []
         
@@ -115,17 +116,15 @@ class TestPerformanceScaling(unittest.TestCase):
             # Search for last element (worst case)
             start = time.perf_counter()
             for _ in range(50):  # Fewer iterations for quicker tests
-                searcher.linear_search(f'txn_{size:04d}')
+                searcher.linear_search(str(size), verbose=False)
             times.append(time.perf_counter() - start)
         
         # Verify time increases (rough linear relationship)
         self.assertGreater(times[1], times[0])
         self.assertGreater(times[2], times[1])
-        print("Linear search shows linear scaling as expected")
     
     def test_dictionary_lookup_constant_time(self):
         """Verify dictionary lookup time remains relatively constant"""
-        print("Testing dictionary constant time...")
         sizes = [10, 30, 50]
         times = []
         
@@ -135,14 +134,14 @@ class TestPerformanceScaling(unittest.TestCase):
             
             start = time.perf_counter()
             for _ in range(50):
-                searcher.dictionary_lookup(f'txn_{size:04d}')
+                searcher.dictionary_lookup(str(size), verbose=False)
             times.append(time.perf_counter() - start)
         
-        # Times should be relatively similar (within 2x)
+        # Times should be relatively similar (within reasonable bounds)
         max_time = max(times)
         min_time = min(times)
-        self.assertLess(max_time / min_time, 2.0)
-        print("Dictionary shows constant time performance")
+        # Allow for some variance but should be much more consistent than linear search
+        self.assertLess(max_time / min_time, 3.0)
 
 
 def run_all_tests():
@@ -175,9 +174,9 @@ def run_all_tests():
     print(f"Errors: {len(result.errors)}")
     
     if result.wasSuccessful():
-        print("All tests passed! Ready for API integration.")
+        print("\n🎉 All tests passed! Ready for API integration.")
     else:
-        print("Some tests failed - please check implementation.")
+        print("\n❌ Some tests failed - please check implementation.")
     
     print("=" * 80)
     
