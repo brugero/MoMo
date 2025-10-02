@@ -1,4 +1,4 @@
-## 📋 Overview
+##  Overview
 
 This module implements and compares different search algorithms for efficiently finding transactions in the MoMo SMS data processing system. It demonstrates the practical application of Data Structures and Algorithms (DSA) concepts in API development.
 
