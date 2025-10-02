@@ -17,7 +17,7 @@ All requests must include HTTP Basic Authentication.
 - Header: `Authorization: Basic <base64(username:password)>`  
 - Example (curl):
 
-```bash
+
 curl -u myuser:mypass http://localhost:8000/transactions
 
 If credentials are invalid or missing, the server responds:
@@ -34,13 +34,13 @@ Method: GET
 
 Path: /transactions
 
-Request Headers:
+### Request Headers:
 | Header        | Required | Value / Format   |
 | ------------- | -------- | ---------------- |
 | Authorization | ✅        | Basic auth token |
 | (others)      | —        | —                |
 
-Response (200 OK):
+### Response (200 OK):
 [
   {
     "id": 1,
@@ -59,7 +59,7 @@ Response (200 OK):
     "timestamp": "2025-10-01T10:15:00"
   }
 ]
-Error responses:
+### Error responses:
 
 401 Unauthorized — missing/invalid credentials
 
@@ -72,12 +72,12 @@ Method: GET
 
 Path: /transactions/{id}
 
-Path parameter:
+### Path parameter:
 | Parameter | Type    | Description           |
 | --------- | ------- | --------------------- |
 | `id`      | integer | Unique transaction ID |
 
-Response (200 OK):
+### Response (200 OK):
 {
   "id": 1,
   "type": "Deposit",
@@ -86,7 +86,7 @@ Response (200 OK):
   "receiver": "MTN",
   "timestamp": "2025-10-01T09:00:00"
 }
-Error responses:
+### Error responses:
 
 401 Unauthorized
 
@@ -101,13 +101,13 @@ Method: POST
 
 Path: /transactions
 
-Request Headers:
+### Request Headers:
 | Header        | Required | Value / Format     |
 | ------------- | -------- | ------------------ |
 | Authorization | ✅        | Basic auth token   |
 | Content-Type  | ✅        | `application/json` |
 
-Request Body (JSON):
+### Request Body (JSON):
 {
   "type": "Deposit",
   "amount": 2500,
@@ -115,7 +115,7 @@ Request Body (JSON):
   "receiver": "MTN",
   "timestamp": "2025-10-01T11:20:00"
 }
-Response (201 Created):
+### Response (201 Created):
 {
   "message": "Transaction created successfully",
   "transaction": {
@@ -127,7 +127,7 @@ Response (201 Created):
     "timestamp": "2025-10-01T11:20:00"
   }
 }
-Error responses:
+### Error responses:
 
 400 Bad Request — missing or invalid fields
 
@@ -142,24 +142,24 @@ Method: PUT
 
 Path: /transactions/{id}
 
-Path parameter:
+### Path parameter:
 | Parameter | Type    | Description                     |
 | --------- | ------- | ------------------------------- |
 | `id`      | integer | ID of the transaction to update |
 
-Request Headers:
+### Request Headers:
 | Header        | Required | Value / Format     |
 | ------------- | -------- | ------------------ |
 | Authorization | ✅        | Basic auth token   |
 | Content-Type  | ✅        | `application/json` |
 
-Request Body (JSON):
+### Request Body (JSON):
 Fields to update. Example:
 {
   "amount": 3000
 }
 
-Response (200 OK):
+### Response (200 OK):
 {
   "message": "Transaction updated successfully",
   "transaction": {
@@ -171,7 +171,7 @@ Response (200 OK):
     "timestamp": "2025-10-01T09:00:00"
   }
 }
-Error responses:
+### Error responses:
 
 400 Bad Request — invalid data
 
@@ -188,16 +188,16 @@ Method: DELETE
 
 Path: /transactions/{id}
 
-Path parameter:
+### Path parameter:
 | Parameter | Type    | Description                     |
 | --------- | ------- | ------------------------------- |
 | `id`      | integer | ID of the transaction to delete |
 
-Response (200 OK):
+### Response (200 OK):
 {
   "message": "Transaction deleted successfully"
 }
-Error responses:
+### Error responses:
 
 401 Unauthorized
 
