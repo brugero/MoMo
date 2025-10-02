@@ -1,0 +1,8 @@
+[
+  {
+    "logId": "LOG-001",
+    "status": "TRANSACTION_CREATED",
+    "transactionId": 1,
+    "timestamp": "2025-10-02T17:56:22.877331"
+  }
+]
