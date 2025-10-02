@@ -29,7 +29,7 @@ def init_json_files():
 init_json_files()
 
 def setup_api_key():
-    """Get plain API key from user, encode it, and store the encoded version"""
+    """Get plain API key from user, encode it, and store the Base64 version"""
     global stored_api_key
     
     try:
@@ -43,7 +43,7 @@ def setup_api_key():
     
     # Get new API key from user
     print("\nAPI Security Setup")
-    print("Enter your secret API key (remember this!)\n")
+    print("Enter your secret API key\n")
     
     while True:
         user_key = getpass.getpass("Your API key: ").strip()
@@ -62,12 +62,15 @@ def setup_api_key():
 
 class Security:
     @staticmethod
-    def authenticate(incoming_key_b64):
-        """Compare the Base64 key from client with our stored Base64 key"""
+    def authenticate(incoming_key_plain):
+        """Encode the incoming plain key and compare with stored Base64 version"""
         global stored_api_key
         try:
-            # Direct comparison of Base64 strings
-            return incoming_key_b64 == stored_api_key
+            # Encode the incoming plain key to Base64
+            incoming_encoded = base64.b64encode(incoming_key_plain.encode()).decode()
+            
+            # Compare with our stored Base64 key
+            return stored_api_key == incoming_encoded
         except:
             return False
     
@@ -112,11 +115,11 @@ class APIHandler(http.server.BaseHTTPRequestHandler):
     
     def _security_check(self):
         """Security gateway for all requests"""
-        api_key_b64 = self.headers.get('X-API-Key')
+        api_key_plain = self.headers.get('X-API-Key')  # User sends plain text
         client_ip = self.client_address[0]
         
-        # Authentication - now comparing Base64 strings directly
-        if not api_key_b64 or not Security.authenticate(api_key_b64):
+        # Authentication - user sends plain text, we encode and compare with stored Base64
+        if not api_key_plain or not Security.authenticate(api_key_plain):
             self._send_error(401, "Invalid API key")
             return False
         
@@ -306,6 +309,9 @@ def run_server(port=8000):
     # Setup API key first
     setup_api_key()
     
+    # Decode to show user what their plain text key is
+    plain_key = base64.b64decode(stored_api_key).decode()
+    
     with socketserver.TCPServer(("", port), APIHandler) as httpd:
         print(f"\nServer running on port {port}")
         print(f"Rate limit: {RATE_LIMIT} requests/minute per IP")
@@ -317,7 +323,9 @@ def run_server(port=8000):
         print(f"  PUT    /transactions/{{id}}")
         print(f"  DELETE /transactions/{{id}}")
         print(f"\nRequired header for all requests:")
-        print(f'curl -H "X-API-Key: {stored_api_key}" http://localhost:{port}/transactions')
+        print(f"\nYour plain text API key: {plain_key}")
+        print(f"\nExample curl command:")
+        print(f'curl -H "X-API-Key: {plain_key}" http://localhost:{port}/transactions')
         httpd.serve_forever()
 
 if __name__ == "__main__":
